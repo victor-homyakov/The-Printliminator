@@ -1,3 +1,4 @@
+/*global jQuery*/
 function printliminator() {
     //remove conflicts with other javascript libraries
     var $ = jQuery;
@@ -16,31 +17,35 @@ function printliminator() {
     var history = [];
 
     var dont = false;
-    $('body *:not(._print_controls, ._print_controls *)').live('click', function(e) {
-        if (!dont) {
-            e.preventDefault();
-            var done;
-            if (e.altKey) {
-                done = $('body *').not('._print_controls, ._print_controls *, style')
-                    .not($(this).parents().andSelf())
-                    .not($(this).find('*'))
-                    .hide();
-            } else {
-                done = $(this).hide();
-            }
+    $('body').on({
+        click: function(e) {
+            if (!dont) {
+                e.preventDefault();
+                var done;
+                if (e.altKey) {
+                    done = $('body *').not('._print_controls, ._print_controls *, style')
+                        .not($(this).parents().andSelf())
+                        .not($(this).find('*'))
+                        .hide();
+                } else {
+                    done = $(this).hide();
+                }
 
-            done.addClass('_print_removed');
-            history.push(done);
+                done.addClass('_print_removed');
+                history.push(done);
+            }
+        },
+        mouseover: function() {
+            if (!dont) {
+                $(this).css('outline', '3px solid red');
+            }
+        },
+        mouseout: function() {
+            if (!dont) {
+                $(this).css('outline', 'none');
+            }
         }
-    }).live('mouseover', function() {
-        if (!dont) {
-            $(this).css('outline', '3px solid red');
-        }
-    }).live('mouseout', function() {
-        if (!dont) {
-            $(this).css('outline', 'none');
-        }
-    });
+    }, '*:not(._print_controls, ._print_controls *)');
 
     var controls = $('<div>').addClass('_print_controls').css({
         position: 'fixed',
@@ -66,8 +71,9 @@ function printliminator() {
         height: 74
     }).click(function() {
         var done = $('img,iframe,object,embed,input[type=image],ins').hide();
-        var bg = $('body *:not(._print_controls, ._print_controls *)').css('background');
-        var item = $('body *:not(._print_controls, ._print_controls *)').css('background', 'none');
+        var item = $('body *:not(._print_controls, ._print_controls *)');
+        var bg = item.css('background');
+        item.css('background', 'none');
 
         done.addClass('_print_removed');
         history.push(function() {
@@ -176,8 +182,8 @@ function printliminator() {
     }).click(function() {
         var last = history.pop();
         if (last) {
-            if (typeof last == 'function') {
-                last.call();
+            if (typeof last === 'function') {
+                last();
             } else {
                 last.removeClass('_print_removed').show();
             }
